@@ -126,11 +126,11 @@ class Sum(nn.Module):
         difference = inputs1.size()[1] - inputs2.size()[1]
         if difference < 0:
             inputs1 = torch.cat(
-                [inputs1, torch.zeros((inputs1.shape()[0], abs(difference), inputs1.shape()[2], inputs1.shape()[3]))],
+                [inputs1, torch.zeros((inputs1.shape[0], abs(difference), inputs1.shape[2], inputs1.shape[3]))],
                 1)
         elif difference > 0:
             inputs2 = torch.cat(
-                [inputs2, torch.zeros((inputs1.shape()[0], abs(difference), inputs1.shape()[2], inputs1.shape()[3]))],
+                [inputs2, torch.zeros((inputs1.shape[0], abs(difference), inputs1.shape[2], inputs1.shape[3]))],
                 1)
 
         return inputs1 + inputs2
@@ -152,9 +152,9 @@ class Concat(nn.Module):
 
 
 class ConvNet(nn.Module):
-    def __init__(self, decoded_genome, channel, n_class, input_size):
+    def __init__(self, decoded_chromosome, channel=3, n_class=100, input_size=64):
         super(ConvNet, self).__init__()
-        self.genome = decoded_genome
+        self.chromosome = decoded_chromosome
         layers = []
         channels = []
         sizes = []
@@ -162,7 +162,7 @@ class ConvNet(nn.Module):
         sizes.append(input_size)
         size = (0, 0)
         self.inputs = []
-        for layer, input1, input2 in decoded_genome:
+        for layer, input1, input2 in decoded_chromosome:
             name = layer[0]
             if name == "dense":
                 layers.append(nn.Linear(channel * size * size, n_class))
@@ -183,17 +183,21 @@ class ConvNet(nn.Module):
                 layers.append(Sum())
             elif name == "conv":
                 channels.append(layer[1])
-                sizes.append(sizes[input1])
                 layers.append(ConvBlock(in_channels=channels[input1], out_channels=layer[1], kernel_size=layer[2]))
+                sizes.append(sizes[input1])
+                #size after padding will be added
             elif name == "res":
                 channels.append(max(layer[1], channels[input1]))
                 sizes.append(sizes[input1])
                 layers.append(ResBlock(in_channels=channels[input1], out_channels=layer[1], kernel_size=layer[2]))
             self.inputs.append((input1, input2))
+            if sizes[-1] < 1:
+                raise Exception("Bad Network")
+
         self.layers = layers
 
-    def forward(self, input):
-        outputs = [input]
+    def forward(self, inputs):
+        outputs = [inputs]
         for index, layer in enumerate(self.layers):
             if isinstance(layer, nn.Linear):
                 return F.sigmoid(
