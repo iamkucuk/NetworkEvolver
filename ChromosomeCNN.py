@@ -90,7 +90,7 @@ class ChromosomeCNN:
                 if selection == 0:
                     new_gene = round(random.uniform(0, 3))
                 elif selection == 1 or ((selection - 3) % 5 == 1):
-                    new_gene = round(random.uniform(3, self.max_filters - 1))
+                    new_gene = round(random.uniform(3, self.max_filters))
                 elif selection == 2 or ((selection - 3) % 5 == 2):
                     new_gene = round(random.uniform(0, 2))
                 elif (selection - 3) % 5 == 0:
@@ -106,7 +106,7 @@ class ChromosomeCNN:
             if selection == 0:
                 new_gene = round(random.uniform(0, 3))
             elif selection == 1 or ((selection - 3) % 5 == 1):
-                new_gene = round(random.uniform(3, self.max_filters - 1))
+                new_gene = round(random.uniform(3, self.max_filters))
             elif selection == 2 or ((selection - 3) % 5 == 2):
                 new_gene = round(random.uniform(0, 2))
             elif (selection - 3) % 5 == 0:
