@@ -1,6 +1,8 @@
 import os
+import pickle
 import random
 import time
+from collections import OrderedDict
 from datetime import datetime
 
 import torch
@@ -18,7 +20,7 @@ from train_model import train_model
 
 
 def evaluate(individual):
-    decoded_chromosome = individual.decode_choromosome()
+    decoded_chromosome = individual.decode_chromosome()
     model = ConvNet(decoded_chromosome[1:])
 
     transformations = {
@@ -38,18 +40,18 @@ def evaluate(individual):
         ])
     }
 
-    data_dir = None
+    data_dir = "data"
 
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
                                               transformations[x])
                       for x in ['train', 'val', 'test']}
-    dataloaders = {x: DataLoader(image_datasets[x], batch_size=100,
+    dataloaders = {x: DataLoader(image_datasets[x], batch_size=128,
                                  shuffle=True)
                    for x in ['train', 'val', 'test']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model_ft = model.to(device)
+    model = model.to(device)
 
     optimizer_name = decoded_chromosome[0]
 
@@ -62,7 +64,10 @@ def evaluate(individual):
     optimizer = optimizers[optimizer_name]
     criterion = nn.CrossEntropyLoss()
 
-    return 1/train_model(str(datetime.now().time()), model, dataloaders, dataset_sizes, criterion, optimizer, num_epochs=10)
+    model_name = str(datetime.now().time())
+
+    return model_name, 1 / train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimizer,
+                                       num_epochs=10)
 
 
 class NetworkEvolver:
@@ -73,6 +78,7 @@ class NetworkEvolver:
         self.mutation_rate = mutation_rate
         self.population = []
         self._initialize_population()
+        self.best_fitness = 0
 
     def _initialize_population(self):
         for i in range(self.population_size):
@@ -84,16 +90,41 @@ class NetworkEvolver:
         self.population = []
         for i in range(self.population_size):
             child_chromosome = male.mate(female)
-            individual = ChromosomeCNN()
-            individual.chromosome = child_chromosome
+            individual = ChromosomeCNN(child_chromosome)
             individual.mutate()
             self.population.append(individual)
 
     def breed(self):
         # find hall of fame
-        fitnesses = []
+        fitnesses = {}
 
         for individual in self.population:
-            fitnesses.append(evaluate(individual))
+            name, fitness = evaluate(individual)
+            fitnesses.update({
+                name: fitness,
+            })
 
-        # self.repopulate(male=male, female=female)
+        # noinspection PyTypeChecker
+        fitnesses = OrderedDict(sorted(fitnesses.items()), key=lambda x: x[1])
+
+        male = fitnesses.popitem()
+        female = fitnesses.popitem()
+
+        with open('male.data', 'wb') as file:
+            pickle.dump(male, file)
+        with open('female.data', 'wb') as file:
+            pickle.dump(female, file)
+
+        if male[1] > self.best_fitness:
+            self.best_fitness = male[1]
+            with open('best.data', 'wb') as file:
+                pickle.dump(male, file)
+        self.repopulate(male, female)
+
+    def evolution(self):
+        for i in range(self.generations):
+            self.breed()
+
+
+evolver = NetworkEvolver()
+evolver.evolution()

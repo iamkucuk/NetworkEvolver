@@ -8,14 +8,16 @@ class ChromosomeCNN:
     Awesome class definition
     """
 
-    def __init__(self, max_conv_layers=26, max_filters=1024,
-                 input_shape=224, n_classes=100,
+    def __init__(self, chromosome=None, max_conv_layers=26, max_filters=1024,
+                 input_shape=64, n_classes=200,
                  optimizers=None, activations=None):
         """
             Awesome parameter explainations
         """
 
         self.chromosome = []
+        if chromosome is not None:
+            self.chromosome = chromosome
         self.genome_length = 5
 
         self.chromosome_length = max_conv_layers * self.genome_length + 3
@@ -73,7 +75,7 @@ class ChromosomeCNN:
             genome = self.chromosome[i * self.genome_length + 3: (i + 1) * self.genome_length + 3]
             # check if connected
             layer_params = [self.layer_names[genome[0]], self.layer_params["num_filters"][genome[1]],
-                            self.layer_params["kernel_size"][self.chromosome[2]], 0, 0]
+                            self.layer_params["kernel_size"][genome[2]], 0, 0]
 
             decoded_genome = [layer_params, genome[-2], genome[-1]]
 
@@ -88,7 +90,7 @@ class ChromosomeCNN:
                 if selection == 0:
                     new_gene = round(random.uniform(0, 3))
                 elif selection == 1 or ((selection - 3) % 5 == 1):
-                    new_gene = round(random.uniform(0, self.max_filters))
+                    new_gene = round(random.uniform(3, self.max_filters - 1))
                 elif selection == 2 or ((selection - 3) % 5 == 2):
                     new_gene = round(random.uniform(0, 2))
                 elif (selection - 3) % 5 == 0:
@@ -104,7 +106,7 @@ class ChromosomeCNN:
             if selection == 0:
                 new_gene = round(random.uniform(0, 3))
             elif selection == 1 or ((selection - 3) % 5 == 1):
-                new_gene = round(random.uniform(0, self.max_filters))
+                new_gene = round(random.uniform(3, self.max_filters - 1))
             elif selection == 2 or ((selection - 3) % 5 == 2):
                 new_gene = round(random.uniform(0, 2))
             elif (selection - 3) % 5 == 0:

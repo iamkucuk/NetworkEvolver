@@ -9,7 +9,6 @@ def train_model(output_path, model, dataloaders, dataset_sizes, criterion, optim
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     since = time.time()
     liveloss = PlotLosses()
-    best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     best = 0
     for epoch in range(num_epochs):
@@ -19,7 +18,7 @@ def train_model(output_path, model, dataloaders, dataset_sizes, criterion, optim
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
             if phase == 'train':
-                if scheduler != None:
+                if scheduler is not None:
                     scheduler.step()
                 model.train()  # Set model to training mode
             else:
@@ -30,8 +29,6 @@ def train_model(output_path, model, dataloaders, dataset_sizes, criterion, optim
 
             # Iterate over data.
             for i, (inputs, labels) in enumerate(dataloaders[phase]):
-                if i == 2:
-                    break
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -60,7 +57,7 @@ def train_model(output_path, model, dataloaders, dataset_sizes, criterion, optim
                 sys.stdout.flush()
 
             epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+            epoch_acc = float(running_corrects) / dataset_sizes[phase]
             if phase == 'train':
                 avg_loss = epoch_loss
                 t_acc = epoch_acc
