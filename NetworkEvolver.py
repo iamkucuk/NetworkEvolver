@@ -81,7 +81,7 @@ def evaluate(individual):
 
 class NetworkEvolver:
 
-    def __init__(self, mutation_rate=0.01, population_size=10, generations=10):
+    def __init__(self, mutation_rate=0.01, population_size=50, generations=10):
         self.generations = generations
         self.population_size = population_size
         self.mutation_rate = mutation_rate
