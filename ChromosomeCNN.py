@@ -83,7 +83,7 @@ class ChromosomeCNN:
 
         return decoded_chromosome
 
-    def mutate(self, mutation_rate=.01, number_of_max_mutation=3):
+    def mutate(self, mutation_rate=.1, number_of_max_mutation=3):
         for i in range(number_of_max_mutation):
             if random.random() < mutation_rate:
                 selection = round(random.uniform(0, self.chromosome_length))

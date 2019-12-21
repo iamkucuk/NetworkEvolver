@@ -1,4 +1,5 @@
 import os
+import pickle
 from collections import OrderedDict
 from datetime import datetime
 
@@ -120,12 +121,15 @@ class NetworkEvolver:
         male = fitnesses.popitem()
         female = fitnesses.popitem()
 
-        torch.save(male, "male.pt")
-        torch.save(female, "female.pt")
+        with open("male.data", "wb") as file:
+            pickle.dump(male.chromosome, file)
+        with open("female.data", "wb") as file:
+            pickle.dump(female.chromosome, file)
 
         if male[1] > self.best_fitness:
             self.best_fitness = male[1]
-            torch.save(male, "best.pt")
+            with open("best.data", "wb") as file:
+                pickle.dump(male.chromosome, file)
         self.repopulate(male, female)
 
     def evolution(self):
