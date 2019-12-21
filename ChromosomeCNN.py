@@ -96,7 +96,7 @@ class ChromosomeCNN:
                 elif (selection - 3) % 5 == 0:
                     new_gene = round(random.uniform(0, 5))
                 else:
-                    new_gene = round(random.uniform(0, selection))
+                    new_gene = round(random.uniform((selection - 6) // 7, selection // 7))
 
                 self.chromosome[selection] = new_gene
 
@@ -112,7 +112,8 @@ class ChromosomeCNN:
             elif (selection - 3) % 5 == 0:
                 new_gene = round(random.uniform(0, 5))
             else:
-                new_gene = round(random.uniform((selection - 6) // 7, selection // 7))
+                # new_gene = round(random.uniform((selection - 1) // 7, selection // 7))
+                new_gene = selection // 7 - 1
 
             self.chromosome.append(new_gene)
 

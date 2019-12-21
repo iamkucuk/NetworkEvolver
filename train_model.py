@@ -1,5 +1,8 @@
-import torch, time, copy, sys, os
-import matplotlib.pyplot as plt
+import copy
+import os
+import sys
+import time
+import torch
 # from livelossplot import PlotLosses
 from torch.utils.tensorboard import SummaryWriter
 

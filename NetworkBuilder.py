@@ -146,14 +146,14 @@ class ConvNet(nn.Module):
                     layers.append(nn.MaxPool2d(2, 2))
                 else:
                     layers.append(nn.AvgPool2d(2, 2))
-            elif name == "concat":
-                channels.append(channels[input1] + channels[input2])
-                sizes.append(max(channels[input1], channels[input2]))
-                layers.append(Concat())
-            elif name == "sum":
-                channels.append(channels[input2])
-                sizes.append(max(sizes[input1], sizes[input2]))
-                layers.append(Sum([channels[input1], channels[input2]]))
+            # elif name == "concat":
+            #     channels.append(channels[input1] + channels[input2])
+            #     sizes.append(max(channels[input1], channels[input2]))
+            #     layers.append(Concat())
+            # elif name == "sum":
+            #     channels.append(channels[input2])
+            #     sizes.append(max(sizes[input1], sizes[input2]))
+            #     layers.append(Sum([channels[input1], channels[input2]]))
             elif name == "conv":
                 channels.append(layer[1])
                 layers.append(ConvBlock(in_channels=channels[input1], out_channels=layer[1], kernel_size=layer[2]))
@@ -169,10 +169,14 @@ class ConvNet(nn.Module):
 
         layers.append(nn.Linear(channels[-1] * sizes[-1] * sizes[-1], n_class))
         self.layers = nn.ModuleList(layers)
+        self.sizes = sizes
+        self.channels = channels
 
     def forward(self, inputs):
         outputs = [inputs]
+        inputs = self.inputs
         for index, layer in enumerate(self.layers):
+            input = self.inputs[index][0]
             if isinstance(layer, nn.Linear):
                 return F.sigmoid(
                     layer(outputs[-1].view(outputs[-1].size(0), -1))
