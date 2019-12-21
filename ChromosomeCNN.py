@@ -9,12 +9,13 @@ class ChromosomeCNN:
     """
 
     def __init__(self, chromosome=None, max_conv_layers=16, max_filters=1024,
-                 input_shape=64, n_classes=200,
+                 input_shape=64, n_classes=200, n_columns=3,
                  optimizers=None, activations=None):
         """
             Awesome parameter explainations
         """
 
+        self.n_columns = n_columns
         self.chromosome = []
         if chromosome is not None:
             self.chromosome = chromosome
