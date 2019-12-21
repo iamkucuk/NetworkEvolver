@@ -3,14 +3,16 @@ import matplotlib.pyplot as plt
 from livelossplot import PlotLosses
 
 
-def train_model(output_path, model, dataloaders, dataset_sizes, criterion, optimizer, num_epochs=5, scheduler=None):
+def train_model(output_path, model, dataloaders, dataset_sizes, criterion, optimizer, num_epochs=5, scheduler=None, device=None):
     if not os.path.exists('models/' + str(output_path)):
         os.makedirs('models/' + str(output_path))
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if device is None:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     since = time.time()
     liveloss = PlotLosses()
     best_acc = 0.0
     best = 0
+    beggining_loss = 0
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch + 1, num_epochs))
         print('-' * 10)
@@ -48,11 +50,16 @@ def train_model(output_path, model, dataloaders, dataset_sizes, criterion, optim
                         optimizer.step()
 
                 # statistics
+
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
                 print("\rIteration: {}/{}, Loss: {}.".format(i + 1, len(dataloaders[phase]),
                                                              loss.item() * inputs.size(0)), end="")
-
+                if epoch == 1 and i == 100:
+                    beggining_loss = loss.item() * inputs.size(0)
+                if epoch == 1 and i == 5000:
+                    if loss.item() * inputs.size(0) > beggining_loss - 0.01:
+                        return 10000
                 #                 print( (i+1)*100. / len(dataloaders[phase]), "% Complete" )
                 sys.stdout.flush()
 

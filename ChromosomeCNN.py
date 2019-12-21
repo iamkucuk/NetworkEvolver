@@ -8,7 +8,7 @@ class ChromosomeCNN:
     Awesome class definition
     """
 
-    def __init__(self, chromosome=None, max_conv_layers=26, max_filters=1024,
+    def __init__(self, chromosome=None, max_conv_layers=16, max_filters=1024,
                  input_shape=64, n_classes=200,
                  optimizers=None, activations=None):
         """
@@ -30,8 +30,8 @@ class ChromosomeCNN:
         self.optimizer = [
             'adam',
             'rmsprop',
-            'adagrad',
-            'adadelta',
+            # 'adagrad',
+            # 'adadelta',
         ]
 
         self.activation = [
@@ -41,13 +41,12 @@ class ChromosomeCNN:
         ]
 
         self.layer_names = [
-            "dense",
             "max",
             "avg",
             "concat",
-            "sum",
             "conv",
             "res",
+            "sum",
         ]
 
         self.layer_params = {
@@ -88,13 +87,13 @@ class ChromosomeCNN:
             if random.random() < mutation_rate:
                 selection = round(random.uniform(0, self.chromosome_length))
                 if selection == 0:
-                    new_gene = round(random.uniform(0, 3))
+                    new_gene = round(random.uniform(0, 1))
                 elif selection == 1 or ((selection - 3) % 5 == 1):
                     new_gene = round(random.uniform(0, self.max_filters - 3))
                 elif selection == 2 or ((selection - 3) % 5 == 2):
                     new_gene = round(random.uniform(0, 2))
                 elif (selection - 3) % 5 == 0:
-                    new_gene = round(random.uniform(0, 6))
+                    new_gene = round(random.uniform(0, 5))
                 else:
                     new_gene = round(random.uniform(0, selection))
 
@@ -104,20 +103,20 @@ class ChromosomeCNN:
         self.chromosome = []
         for selection in range(self.chromosome_length):
             if selection == 0:
-                new_gene = round(random.uniform(0, 3))
+                new_gene = round(random.uniform(0, 1))
             elif selection == 1 or ((selection - 3) % 5 == 1):
-                new_gene = round(random.uniform(0, self.max_filters - 3))
+                new_gene = round(random.uniform(0, self.max_filters - 4))
             elif selection == 2 or ((selection - 3) % 5 == 2):
                 new_gene = round(random.uniform(0, 2))
             elif (selection - 3) % 5 == 0:
-                new_gene = round(random.uniform(0, 6))
+                new_gene = round(random.uniform(0, 5))
             else:
-                new_gene = round(random.uniform(0, selection))
+                new_gene = round(random.uniform(0, selection // 7))
 
             self.chromosome.append(new_gene)
 
     def mate(self, partner):
-        cut_point = round(random.uniform(1, self.chromosome_length - 1))
+        cut_point = round(random.uniform(1, self.chromosome_length - 4))
         return self.chromosome[:cut_point].extend(partner.chromosome[cut_point:])
 
     def _check_if_active(self, layer):
