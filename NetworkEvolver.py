@@ -22,7 +22,7 @@ def evaluate(individual):
     try:
         model = ConvNet(decoded_chromosome[1:])
         summary(model, input_size=(3, 64, 64), device="cpu")
-    except Exception as e:
+    except ValueError as e:
         if str(e) == "Bad Network":
             return None, None
 
@@ -48,7 +48,7 @@ def evaluate(individual):
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
                                               transformations[x])
                       for x in ['train', 'val', 'test']}
-    dataloaders = {x: DataLoader(image_datasets[x], batch_size=16,
+    dataloaders = {x: DataLoader(image_datasets[x], batch_size=1,
                                  shuffle=True)
                    for x in ['train', 'val', 'test']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}

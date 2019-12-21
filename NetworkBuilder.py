@@ -126,67 +126,89 @@ class Concat(nn.Module):
 
 
 class ConvNet(nn.Module):
+    # def __init__(self, decoded_chromosome, channel=3, n_class=200, input_size=64):
+    #     super(ConvNet, self).__init__()
+    #     self.chromosome = decoded_chromosome
+    #     layers = []
+    #     channels = []
+    #     sizes = []
+    #     channels.append(channel)
+    #     sizes.append(input_size)
+    #     self.inputs = []
+    #     for layer, input1, input2 in decoded_chromosome:
+    #         name = layer[0]
+    #         if name == "dense":
+    #             layers.append(nn.Linear(channel * sizes[-1] * sizes[-1], n_class))
+    #         elif name == "max" or name == "avg":
+    #             channels.append(channels[input1])
+    #             sizes.append(sizes[input1] // 2)
+    #             if name == "max":
+    #                 layers.append(nn.MaxPool2d(2, 2))
+    #             else:
+    #                 layers.append(nn.AvgPool2d(2, 2))
+    #         elif name == "concat":
+    #             channels.append(channels[input1] + channels[input2])
+    #             sizes.append(max(channels[input1], channels[input2]))
+    #             layers.append(Concat())
+    #         elif name == "sum":
+    #             channels.append(channels[input2])
+    #             sizes.append(max(sizes[input1], sizes[input2]))
+    #             layers.append(Sum([channels[input1], channels[input2]]))
+    #         elif name == "conv":
+    #             channels.append(layer[1])
+    #             layers.append(ConvBlock(in_channels=channels[input1], out_channels=layer[1], kernel_size=layer[2]))
+    #             sizes.append(sizes[input1])
+    #             # size after padding will be added
+    #         elif name == "res":
+    #             channels.append(layer[1])
+    #             sizes.append(sizes[input1])
+    #             layers.append(ResBlock(in_channels=channels[input1], out_channels=layer[1], kernel_size=layer[2]))
+    #         self.inputs.append((input1, input2))
+    #         if sizes[-1] < 1:
+    #             raise ValueError("Bad Network")
+    #
+    #     # layers.append(nn.Linear(channels[-1] * sizes[-1] * sizes[-1], n_class))
+    #     self.linear = None
+    #     self.layers = nn.ModuleList(layers)
+    #     self.sizes = sizes
+    #     self.channels = channels
+
     def __init__(self, decoded_chromosome, channel=3, n_class=200, input_size=64):
         super(ConvNet, self).__init__()
         self.chromosome = decoded_chromosome
+        size = input_size
+        channel_size = channel
         layers = []
-        channels = []
-        sizes = []
-        channels.append(channel)
-        sizes.append(input_size)
-        self.inputs = []
-        for layer, input1, input2 in decoded_chromosome:
+        for layer in decoded_chromosome:
+            layer = layer[0]
             name = layer[0]
-            if name == "dense":
-                layers.append(nn.Linear(channel * sizes[-1] * sizes[-1], n_class))
-            elif name == "max" or name == "avg":
-                channels.append(channels[input1])
-                sizes.append(sizes[input1] // 2)
+            if name == "max" or name == "avg":
+                size = size // 2
                 if name == "max":
                     layers.append(nn.MaxPool2d(2, 2))
                 else:
                     layers.append(nn.AvgPool2d(2, 2))
-            # elif name == "concat":
-            #     channels.append(channels[input1] + channels[input2])
-            #     sizes.append(max(channels[input1], channels[input2]))
-            #     layers.append(Concat())
-            # elif name == "sum":
-            #     channels.append(channels[input2])
-            #     sizes.append(max(sizes[input1], sizes[input2]))
-            #     layers.append(Sum([channels[input1], channels[input2]]))
             elif name == "conv":
-                channels.append(layer[1])
-                layers.append(ConvBlock(in_channels=channels[input1], out_channels=layer[1], kernel_size=layer[2]))
-                sizes.append(sizes[input1])
-                # size after padding will be added
-            elif name == "res":
-                channels.append(layer[1])
-                sizes.append(sizes[input1])
-                layers.append(ResBlock(in_channels=channels[input1], out_channels=layer[1], kernel_size=layer[2]))
-            self.inputs.append((input1, input2))
-            if sizes[-1] < 1:
-                raise Exception("Bad Network")
 
-        layers.append(nn.Linear(channels[-1] * sizes[-1] * sizes[-1], n_class))
+                layers.append(ConvBlock(in_channels=channel_size, out_channels=layer[1], kernel_size=layer[2]))
+                channel_size = layer[1]
+            elif name == "res":
+                layers.append(ResBlock(in_channels=channel_size, out_channels=layer[1], kernel_size=layer[2]))
+                channel_size = layer[1]
+            if size < 1:
+                raise ValueError("Bad Network")
+
+        layers.append(nn.Linear(channel_size * size * size, n_class))
         self.layers = nn.ModuleList(layers)
-        self.sizes = sizes
-        self.channels = channels
 
     def forward(self, inputs):
-        outputs = [inputs]
-        inputs = self.inputs
+        output = inputs
         for index, layer in enumerate(self.layers):
-            input = self.inputs[index][0]
             if isinstance(layer, nn.Linear):
                 return F.sigmoid(
-                    layer(outputs[-1].view(outputs[-1].size(0), -1))
+                    layer(output.view(output.size(0), -1))
                 )
             elif isinstance(layer, nn.MaxPool2d) or isinstance(layer, nn.AvgPool2d):
-                if outputs[self.inputs[index][0]].size(2) > 1:
-                    outputs.append(layer(outputs[self.inputs[index][0]]))
-                else:
-                    outputs.append(outputs[self.inputs[index][0]])
+                output = (layer(output))
             elif isinstance(layer, ConvBlock) or isinstance(layer, ResBlock):
-                outputs.append(layer(outputs[self.inputs[index][0]]))
-            elif isinstance(layer, Concat) or isinstance(layer, Sum):
-                outputs.append(layer(outputs[self.inputs[index][0]], outputs[self.inputs[index][1]]))
+                output = (layer(output))

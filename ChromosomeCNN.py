@@ -8,7 +8,7 @@ class ChromosomeCNN:
     Awesome class definition
     """
 
-    def __init__(self, chromosome=None, max_conv_layers=16, max_filters=1024,
+    def __init__(self, chromosome=None, max_conv_layers=10, max_filters=1024,
                  input_shape=64, n_classes=200, n_columns=3,
                  optimizers=None, activations=None):
         """
@@ -19,7 +19,7 @@ class ChromosomeCNN:
         self.chromosome = []
         if chromosome is not None:
             self.chromosome = chromosome
-        self.genome_length = 5
+        self.genome_length = 3
 
         self.chromosome_length = max_conv_layers * self.genome_length + 3
 
@@ -44,10 +44,10 @@ class ChromosomeCNN:
         self.layer_names = [
             "max",
             "avg",
-            "concat",
+            # "concat",
             "conv",
             "res",
-            "sum",
+            # "sum",
         ]
 
         self.layer_params = {
@@ -68,16 +68,16 @@ class ChromosomeCNN:
         decoded_chromosome = [self.optimizer[self.chromosome[0]], [
             ["conv", self.layer_params["num_filters"][self.chromosome[1]],
              self.layer_params["kernel_size"][self.chromosome[2]]],
-            0, 0
+            # 0, 0
         ]]
 
         for i in range(self.max_conv_layers):
             genome = self.chromosome[i * self.genome_length + 3: (i + 1) * self.genome_length + 3]
             # check if connected
             layer_params = [self.layer_names[genome[0]], self.layer_params["num_filters"][genome[1]],
-                            self.layer_params["kernel_size"][genome[2]], 0, 0]
+                            self.layer_params["kernel_size"][genome[2]]]#, 0, 0]
 
-            decoded_genome = [layer_params, genome[-2], genome[-1]]
+            decoded_genome = [layer_params]#, genome[-2], genome[-1]]
 
             decoded_chromosome.append(decoded_genome)
 
@@ -89,14 +89,14 @@ class ChromosomeCNN:
                 selection = round(random.uniform(0, self.chromosome_length))
                 if selection == 0:
                     new_gene = round(random.uniform(0, 1))
-                elif selection == 1 or ((selection - 3) % 5 == 1):
-                    new_gene = round(random.uniform(0, self.max_filters - 3))
-                elif selection == 2 or ((selection - 3) % 5 == 2):
+                elif selection == 1 or ((selection - 3) % self.genome_length == 1):
+                    new_gene = round(random.uniform(0, self.max_filters - 4))
+                elif selection == 2 or ((selection - 3) % self.genome_length == 2):
                     new_gene = round(random.uniform(0, 2))
-                elif (selection - 3) % 5 == 0:
-                    new_gene = round(random.uniform(0, 5))
-                else:
-                    new_gene = round(random.uniform((selection - 6) // 7, selection // 7))
+                elif (selection - 3) % self.genome_length == 0:
+                    new_gene = round(random.uniform(0, len(self.layer_names) - 1))
+                # else:
+                #     new_gene = round(random.uniform((selection - 6) // 7, selection // 7))
 
                 self.chromosome[selection] = new_gene
 
@@ -105,15 +105,15 @@ class ChromosomeCNN:
         for selection in range(self.chromosome_length):
             if selection == 0:
                 new_gene = round(random.uniform(0, 1))
-            elif selection == 1 or ((selection - 3) % 5 == 1):
+            elif selection == 1 or ((selection - 3) % self.genome_length == 1):
                 new_gene = round(random.uniform(0, self.max_filters - 4))
-            elif selection == 2 or ((selection - 3) % 5 == 2):
+            elif selection == 2 or ((selection - 3) % self.genome_length == 2):
                 new_gene = round(random.uniform(0, 2))
-            elif (selection - 3) % 5 == 0:
-                new_gene = round(random.uniform(0, 5))
-            else:
-                # new_gene = round(random.uniform((selection - 1) // 7, selection // 7))
-                new_gene = selection // 7 - 1
+            elif (selection - 3) % self.genome_length == 0:
+                new_gene = round(random.uniform(0, len(self.layer_names) - 1))
+            # else:
+            #     new_gene = round(random.uniform(max(0, selection // 7 - 0), selection // 7))
+                # new_gene = selection // 7 - 1
 
             self.chromosome.append(new_gene)
 
