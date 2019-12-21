@@ -1,7 +1,7 @@
 import torch, time, copy, sys, os
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 # from livelossplot import PlotLosses
-from torch.utils.tensorboard import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 
 
 def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimizer, num_epochs=5, scheduler=None,
@@ -11,8 +11,8 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
     if device is None:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    writer = SummaryWriter("runs/" + model_name)
-    writer.add_graph(model, torch.zeros([1, 3, 64, 64]).requires_grad_(True).to(device))
+   # writer = SummaryWriter("runs/" + model_name)
+    #writer.add_graph(model, torch.zeros([1, 3, 64, 64]).requires_grad_(True).to(device))
     # writer.close()
     since = time.time()
     best_acc = 0.0
@@ -101,7 +101,7 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
                 epoch_loss_prev = epoch_loss
             else:
                 print("Loss diddn't decrease. Early stopping.")
-                break
+                return val_loss
 
         print('Train Loss: {:.4f} Acc: {:.4f}'.format(avg_loss, t_acc))
         print('Val Loss: {:.4f} Acc: {:.4f}'.format(val_loss, val_acc))

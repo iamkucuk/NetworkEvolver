@@ -121,15 +121,12 @@ class NetworkEvolver:
         male = fitnesses.popitem()
         female = fitnesses.popitem()
 
-        with open('male.data', 'wb') as file:
-            pickle.dump(male, file)
-        with open('female.data', 'wb') as file:
-            pickle.dump(female, file)
+        torch.save(male, "male.pt")
+        torch.save(female, "female.pt")
 
         if male[1] > self.best_fitness:
             self.best_fitness = male[1]
-            with open('best.data', 'wb') as file:
-                pickle.dump(male, file)
+            torch.save(male, "best.pt")
         self.repopulate(male, female)
 
     def evolution(self):
