@@ -1,8 +1,5 @@
-import copy
-import os
-import sys
-import time
-import torch
+import torch, time, copy, sys, os
+import matplotlib.pyplot as plt
 # from livelossplot import PlotLosses
 from torch.utils.tensorboard import SummaryWriter
 
@@ -15,12 +12,13 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     writer = SummaryWriter("runs/" + model_name)
-    writer.add_graph(model, torch.zeros([1, 3, 64, 64]).to(device))
-    writer.close()
+    writer.add_graph(model, torch.zeros([1, 3, 64, 64]).requires_grad_(True).to(device))
+    # writer.close()
     since = time.time()
     best_acc = 0.0
     best = 0
     beggining_loss = 0
+    epoch_loss_prev = 999
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch + 1, num_epochs))
         print('-' * 10)
@@ -62,11 +60,11 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
                 print("\rIteration: {}/{}, Loss: {}.".format(i + 1, len(dataloaders[phase]),
-                                                             loss.item() * inputs.size(0)), end="")
+                                                             loss.item()), end="")
 
-                if i % 1000 == 999 and phase == 'train':
+                if i % 100 == 99 and phase == 'train':
                     writer.add_scalar('training loss',
-                                      running_loss / 1000,
+                                      loss.item(),
                                       epoch * len(dataloaders['train']) + i)
 
                 if epoch == 1 and i == 100:
@@ -98,6 +96,12 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
 
                 best = epoch + 1
                 best_model_wts = copy.deepcopy(model.state_dict())
+
+            if epoch_loss_prev > epoch_loss:
+                epoch_loss_prev = epoch_loss
+            else:
+                print("Loss diddn't decrease. Early stopping.")
+                break
 
         print('Train Loss: {:.4f} Acc: {:.4f}'.format(avg_loss, t_acc))
         print('Val Loss: {:.4f} Acc: {:.4f}'.format(val_loss, val_acc))

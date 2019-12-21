@@ -8,7 +8,7 @@ class ChromosomeCNN:
     Awesome class definition
     """
 
-    def __init__(self, chromosome=None, max_conv_layers=10, max_filters=1024,
+    def __init__(self, chromosome=None, max_conv_layers=20, max_filters=1024,
                  input_shape=64, n_classes=200, n_columns=3,
                  optimizers=None, activations=None):
         """

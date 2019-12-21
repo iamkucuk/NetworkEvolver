@@ -10,6 +10,7 @@ from torch import nn, optim
 from torch.optim.rmsprop import RMSprop
 from torch.utils.data import DataLoader
 from torchsummary import summary
+from torchviz import make_dot
 
 from ChromosomeCNN import ChromosomeCNN
 from NetworkBuilder import ConvNet
@@ -21,6 +22,9 @@ def evaluate(individual):
     decoded_chromosome = individual.decode_chromosome()
     try:
         model = ConvNet(decoded_chromosome[1:])
+        # torch.save(model, "hebe.pt")
+        # dummy = torch.zeros([1, 3, 64, 64]).requires_grad_(True)
+        # make_dot(model(dummy), params=dict(list(model.named_parameters()) + [('x', dummy)]))
         summary(model, input_size=(3, 64, 64), device="cpu")
     except ValueError as e:
         if str(e) == "Bad Network":
@@ -48,7 +52,7 @@ def evaluate(individual):
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
                                               transformations[x])
                       for x in ['train', 'val', 'test']}
-    dataloaders = {x: DataLoader(image_datasets[x], batch_size=1,
+    dataloaders = {x: DataLoader(image_datasets[x], batch_size=32,
                                  shuffle=True)
                    for x in ['train', 'val', 'test']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}
@@ -72,7 +76,7 @@ def evaluate(individual):
     # hl.build_graph(model, torch.zeros([1, 3, 64, 64]).to(device))
 
     return model_name, 1 / train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimizer,
-                                       num_epochs=10, device=device)
+                                       num_epochs=10)
 
 
 class NetworkEvolver:

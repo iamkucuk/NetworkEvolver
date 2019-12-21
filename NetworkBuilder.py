@@ -189,7 +189,6 @@ class ConvNet(nn.Module):
                 else:
                     layers.append(nn.AvgPool2d(2, 2))
             elif name == "conv":
-
                 layers.append(ConvBlock(in_channels=channel_size, out_channels=layer[1], kernel_size=layer[2]))
                 channel_size = layer[1]
             elif name == "res":
