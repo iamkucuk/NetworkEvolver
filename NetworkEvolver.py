@@ -90,7 +90,7 @@ class NetworkEvolver:
         self.best_fitness = 0
         now = datetime.now()
         log_name = now.strftime("%d%m%Y_%H%M%S")
-        logging.basicConfig(filename="genetic" + log_name + ".log", format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(filename="genetic" + log_name + ".log", format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
     def _initialize_population(self):
         logging.info("=================Initializing population for the first time=================")
