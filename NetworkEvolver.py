@@ -18,7 +18,7 @@ from train_model import train_model
 
 now = datetime.now()
 log_name = now.strftime("%d%m%Y_%H%M%S")
-logging.basicConfig(filename="genetic" + log_name + ".log", format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename="genetic_" + log_name + ".log", format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def evaluate(individual):
@@ -92,6 +92,8 @@ class NetworkEvolver:
         self.population = []
         self._initialize_population()
         self.best_fitness = 0
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.INFO)
 
     def _initialize_population(self):
         logging.info("=================Initializing population for the first time=================")
