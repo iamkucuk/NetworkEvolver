@@ -3,7 +3,7 @@ import torch, time, copy, sys, os
 
 # import matplotlib.pyplot as plt
 # from livelossplot import PlotLosses
-# from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 
 def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimizer, num_epochs=5, scheduler=None,
@@ -13,15 +13,17 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
     if device is None:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    # writer = SummaryWriter("runs/" + model_name)
-    # writer.add_graph(model, torch.zeros([1, 3, 64, 64]).requires_grad_(True).to(device))
-    # writer.close()
+    writer = SummaryWriter("runs/" + model_name)
+    writer.add_graph(model, torch.zeros([1, 3, 64, 64]).requires_grad_(True).to(device))
+    writer.close()
     since = time.time()
     best_acc = 0.0
     best = 0
     beggining_loss = 0
     epoch_loss_prev = 999
     for epoch in range(num_epochs):
+        if epoch == 0:
+            epoch_loss_prev = 999999
         print('Epoch {}/{}'.format(epoch + 1, num_epochs))
         print('-' * 10)
 
@@ -64,10 +66,10 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
                 print("\rIteration: {}/{}, Loss: {}.".format(i + 1, len(dataloaders[phase]),
                                                              loss.item()), end="")
 
-                # if i % 100 == 99 and phase == 'train':
-                #     writer.add_scalar('training loss',
-                #                       loss.item(),
-                #                       epoch * len(dataloaders['train']) + i)
+                if i % 100 == 99 and phase == 'train':
+                    writer.add_scalar('training loss',
+                                      loss.item(),
+                                      epoch * len(dataloaders['train']) + i)
 
                 if epoch == 1 and i == 100:
                     beggining_loss = loss.item() * inputs.size(0)
@@ -97,19 +99,31 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
                 best = epoch + 1
                 best_model_wts = copy.deepcopy(model.state_dict())
 
-            if epoch_loss_prev > epoch_loss:
-                epoch_loss_prev = epoch_loss
-            else:
-                print("Loss diddn't decrease. Early stopping.")
-                return val_loss
+
 
         print('Train Loss: {:.4f} Acc: {:.4f}'.format(avg_loss, t_acc))
         print('Val Loss: {:.4f} Acc: {:.4f}'.format(val_loss, val_acc))
         print()
+
+        writer.add_scalar('val loss',
+                          val_loss,
+                          epoch)
+
+        writer.add_scalar('val acc',
+                          val_acc,
+                          epoch)
+
+        if epoch_loss_prev > epoch_loss:
+            epoch_loss_prev = epoch_loss
+        else:
+            print("Loss diddn't decrease. Early stopping.")
+            writer.close()
+            return val_loss
+
         # torch.save(model.state_dict(), './models/' + str(model_name) + '/model_{}_epoch.pt'.format(epoch + 1))
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
     print('Best Validation Accuracy: {}, Epoch: {}'.format(best_acc, best))
-
+    writer.close()
     return val_loss

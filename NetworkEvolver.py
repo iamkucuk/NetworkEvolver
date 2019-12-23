@@ -75,13 +75,13 @@ def evaluate(individual):
 
     # hl.build_graph(model, torch.zeros([1, 3, 64, 64]).to(device))
 
-    return model_name, 1 / train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimizer,
-                                       num_epochs=10)
+    return model_name, 1/train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimizer,
+                                   num_epochs=10)
 
 
 class NetworkEvolver:
 
-    def __init__(self, mutation_rate=0.01, population_size=50, generations=10):
+    def __init__(self, mutation_rate=0.01, population_size=10, generations=10):
         self.generations = generations
         self.population_size = population_size
         self.mutation_rate = mutation_rate
@@ -90,14 +90,14 @@ class NetworkEvolver:
         self.best_fitness = 0
 
     def _initialize_population(self):
-        for i in range(self.population_size):
+        for i in range(self.population_size * 10):
             individual = ChromosomeCNN()
             individual.initialize_individual()
             self.population.append(individual)
 
     def repopulate(self, male, female):
         self.population = []
-        for i in range(self.population_size):
+        for i in range(self.population_size * 10):
             child_chromosome = male.mate(female)
             individual = ChromosomeCNN(child_chromosome)
             individual.mutate()
@@ -112,25 +112,27 @@ class NetworkEvolver:
             if name is None:
                 continue
             fitnesses.update({
-                name: fitness,
+                name: [fitness, individual],
             })
+            if len(fitnesses) == self.population_size:
+                break
 
         # noinspection PyTypeChecker
-        fitnesses = OrderedDict(sorted(fitnesses.items()), key=lambda x: x[1])
+        fitnesses = OrderedDict(sorted(fitnesses.items(), key=lambda x: x[1][0]))
 
-        male = fitnesses.popitem()
-        female = fitnesses.popitem()
+        male = fitnesses.popitem()[1]
+        female = fitnesses.popitem()[1]
 
         with open("male.data", "wb") as file:
-            pickle.dump(male.chromosome, file)
+            pickle.dump(male, file)
         with open("female.data", "wb") as file:
-            pickle.dump(female.chromosome, file)
+            pickle.dump(female, file)
 
-        if male[1] > self.best_fitness:
-            self.best_fitness = male[1]
+        if male[0] > self.best_fitness:
+            self.best_fitness = male[0]
             with open("best.data", "wb") as file:
-                pickle.dump(male.chromosome, file)
-        self.repopulate(male, female)
+                pickle.dump(male, file)
+        self.repopulate(male[1], female[1])
 
     def evolution(self):
         for i in range(self.generations):

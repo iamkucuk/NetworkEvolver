@@ -8,7 +8,7 @@ class ChromosomeCNN:
     Awesome class definition
     """
 
-    def __init__(self, chromosome=None, max_conv_layers=20, max_filters=1024,
+    def __init__(self, chromosome=None, max_conv_layers=10, max_filters=1024,
                  input_shape=64, n_classes=200, n_columns=3,
                  optimizers=None, activations=None):
         """
@@ -86,7 +86,7 @@ class ChromosomeCNN:
     def mutate(self, mutation_rate=.1, number_of_max_mutation=3):
         for i in range(number_of_max_mutation):
             if random.random() < mutation_rate:
-                selection = round(random.uniform(0, self.chromosome_length))
+                selection = round(random.uniform(0, self.chromosome_length - 1))
                 if selection == 0:
                     new_gene = round(random.uniform(0, 1))
                 elif selection == 1 or ((selection - 3) % self.genome_length == 1):
