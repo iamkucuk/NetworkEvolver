@@ -29,8 +29,8 @@ class ChromosomeCNN:
         self.max_filters = int(math.log2(max_filters))
 
         self.optimizer = [
-            'adam',
-            'rmsprop',
+            #'adam',
+            #'rmsprop',
             'adagrad',
             'adadelta',
         ]

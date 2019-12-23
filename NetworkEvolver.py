@@ -75,7 +75,7 @@ def evaluate(individual):
         optimizer = RMSprop(model.parameters())
     elif optimizer_name == "adagrad":
         optimizer = Adagrad(model.parameters())
-    elif optimizer_name == "adagrad":
+    elif optimizer_name == "adadelta":
         optimizer = Adadelta(model.parameters())
 
     criterion = nn.CrossEntropyLoss()
@@ -142,12 +142,12 @@ class NetworkEvolver:
         logging.info("=================Generation evaluation fitnesses=================")
         logging.info(str(fitnesses))
 
-        logging.info("=================Male individual=================")
+        logging.info("=================Found male individual=================")
         male = fitnesses.popitem()[1]
-        logging.info(str(male.decode_chromosome()))
-        logging.info("=================Female individual=================")
+        logging.info(str(male[1].decode_chromosome()))
+        logging.info("=================Found female individual=================")
         female = fitnesses.popitem()[1]
-        logging.info(str(female.decode_chromosome()))
+        logging.info(str(female[1].decode_chromosome()))
 
         with open("male.data", "wb") as file:
             pickle.dump(male, file)
