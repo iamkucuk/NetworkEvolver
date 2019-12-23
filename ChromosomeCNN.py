@@ -31,8 +31,8 @@ class ChromosomeCNN:
         self.optimizer = [
             'adam',
             'rmsprop',
-            # 'adagrad',
-            # 'adadelta',
+            'adagrad',
+            'adadelta',
         ]
 
         self.activation = [
@@ -88,7 +88,7 @@ class ChromosomeCNN:
             if random.random() < mutation_rate:
                 selection = round(random.uniform(0, self.chromosome_length - 1))
                 if selection == 0:
-                    new_gene = round(random.uniform(0, 1))
+                    new_gene = round(random.uniform(0, len(self.optimizer) - 1))
                 elif selection == 1 or ((selection - 3) % self.genome_length == 1):
                     new_gene = round(random.uniform(0, self.max_filters - 4))
                 elif selection == 2 or ((selection - 3) % self.genome_length == 2):
@@ -104,7 +104,7 @@ class ChromosomeCNN:
         self.chromosome = []
         for selection in range(self.chromosome_length):
             if selection == 0:
-                new_gene = round(random.uniform(0, 1))
+                new_gene = round(random.uniform(0, len(self.optimizer) - 1))
             elif selection == 1 or ((selection - 3) % self.genome_length == 1):
                 new_gene = round(random.uniform(0, self.max_filters - 4))
             elif selection == 2 or ((selection - 3) % self.genome_length == 2):

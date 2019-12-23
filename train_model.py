@@ -66,7 +66,7 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
                                                              loss.item()), end="")
 
                 if i % 100 == 99 and phase == 'train':
-                    writer.add_scalar('training loss',
+                    writer.add_scalar('training_loss',
                                       loss.item(),
                                       epoch * len(dataloaders['train']) + i)
 
@@ -102,11 +102,11 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
         print('Val Loss: {:.4f} Acc: {:.4f}'.format(val_loss, val_acc))
         print()
 
-        writer.add_scalar('val loss',
+        writer.add_scalar('val_loss',
                           val_loss,
                           epoch)
 
-        writer.add_scalar('val acc',
+        writer.add_scalar('val_acc',
                           val_acc,
                           epoch)
 
