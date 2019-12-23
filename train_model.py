@@ -1,6 +1,5 @@
 import torch, time, copy, sys, os
 
-
 # import matplotlib.pyplot as plt
 # from livelossplot import PlotLosses
 from torch.utils.tensorboard import SummaryWriter
@@ -98,8 +97,6 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
 
                 best = epoch + 1
                 best_model_wts = copy.deepcopy(model.state_dict())
-
-
 
         print('Train Loss: {:.4f} Acc: {:.4f}'.format(avg_loss, t_acc))
         print('Val Loss: {:.4f} Acc: {:.4f}'.format(val_loss, val_acc))
