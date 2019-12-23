@@ -92,11 +92,9 @@ class NetworkEvolver:
         self.population = []
         self._initialize_population()
         self.best_fitness = 0
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.INFO)
 
     def _initialize_population(self):
-        self.logger.info("=================Initializing population for the first time=================")
+        logging.info("=================Initializing population for the first time=================")
         for i in range(self.population_size * 10):
             individual = ChromosomeCNN()
             individual.initialize_individual()
@@ -104,7 +102,7 @@ class NetworkEvolver:
 
     def repopulate(self, male, female):
         self.population = []
-        self.logger.info("=================Re-population initiated.=================")
+        logging.info("=================Re-population initiated.=================")
         for i in range(self.population_size * 10):
             child_chromosome = male.mate(female)
             individual = ChromosomeCNN(child_chromosome)
@@ -115,14 +113,14 @@ class NetworkEvolver:
         # find hall of fame
         fitnesses = {}
 
-        self.logger.info("=================Generation evaluation started=================")
+        logging.info("=================Generation evaluation started=================")
 
         for individual in self.population:
-            self.logger.debug("Decoded Chromosome 1" + str(individual.decode_chromosome()))
+            logging.debug("Decoded Chromosome 1" + str(individual.decode_chromosome()))
             name, fitness = evaluate(individual)
             if name is None:
                 continue
-            self.logger.debug("Evaluation of chromosome" + name + ": " + str(fitness))
+            logging.debug("Evaluation of chromosome" + name + ": " + str(fitness))
             fitnesses.update({
                 name: [fitness, individual],
             })
@@ -132,15 +130,15 @@ class NetworkEvolver:
         # noinspection PyTypeChecker
         fitnesses = OrderedDict(sorted(fitnesses.items(), key=lambda x: x[1][0]))
 
-        self.logger.warning("=================Generation evaluation fitnesses=================")
-        self.logger.warning(str(fitnesses))
+        logging.warning("=================Generation evaluation fitnesses=================")
+        logging.warning(str(fitnesses))
 
-        self.logger.warning("=================Male individual=================")
+        logging.warning("=================Male individual=================")
         male = fitnesses.popitem()[1]
-        self.logger.warning(str(male.decode_chromosome()))
-        self.logger.warning("=================Female individual=================")
+        logging.warning(str(male.decode_chromosome()))
+        logging.warning("=================Female individual=================")
         female = fitnesses.popitem()[1]
-        self.logger.warning(str(female.decode_chromosome()))
+        logging.warning(str(female.decode_chromosome()))
 
         with open("male.data", "wb") as file:
             pickle.dump(male, file)
@@ -155,7 +153,7 @@ class NetworkEvolver:
 
     def evolution(self):
         for i in range(self.generations):
-            self.logger.debug("=================Generation " + str(i + 1) + "=================")
+            logging.debug("=================Generation " + str(i + 1) + "=================")
             self.breed()
 
 
