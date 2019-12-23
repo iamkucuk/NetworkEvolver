@@ -17,6 +17,7 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
     writer.close()
     since = time.time()
     best_acc = 0.0
+    best_val = 99999
     best = 0
     beggining_loss = 0
     epoch_loss_prev = 999
@@ -98,6 +99,9 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
                 best = epoch + 1
                 best_model_wts = copy.deepcopy(model.state_dict())
 
+            if phase == 'val' and epoch_loss < best_val:
+                best_val = epoch_loss
+
         print('Train Loss: {:.4f} Acc: {:.4f}'.format(avg_loss, t_acc))
         print('Val Loss: {:.4f} Acc: {:.4f}'.format(val_loss, val_acc))
         print()
@@ -123,4 +127,4 @@ def train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimi
         time_elapsed // 60, time_elapsed % 60))
     print('Best Validation Accuracy: {}, Epoch: {}'.format(best_acc, best))
     writer.close()
-    return val_loss
+    return best_val

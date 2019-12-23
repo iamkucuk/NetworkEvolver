@@ -1,6 +1,7 @@
 import logging
 import os
 import pickle
+import random
 from collections import OrderedDict
 from datetime import datetime
 
@@ -85,8 +86,8 @@ def evaluate(individual):
 
     # hl.build_graph(model, torch.zeros([1, 3, 64, 64]).to(device))
 
-    return model_name, 1 / train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimizer,
-                                       num_epochs=10)
+    return model_name, 1 / train_model(model_name, model, dataloaders, dataset_sizes, criterion, optimizer
+                                       , num_epochs=10)
 
 
 class NetworkEvolver:

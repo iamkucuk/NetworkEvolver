@@ -8,7 +8,7 @@ class ChromosomeCNN:
     Awesome class definition
     """
 
-    def __init__(self, chromosome=None, max_conv_layers=10, max_filters=1024,
+    def __init__(self, chromosome=None, max_conv_layers=12, max_filters=1024,
                  input_shape=64, n_classes=200, n_columns=3,
                  optimizers=None, activations=None):
         """
@@ -83,20 +83,20 @@ class ChromosomeCNN:
 
         return decoded_chromosome
 
-    def mutate(self, mutation_rate=.1, number_of_max_mutation=3):
+    def mutate(self, mutation_rate=.1, number_of_max_mutation=15):
         for i in range(number_of_max_mutation):
-            if random.random() < mutation_rate:
-                selection = round(random.uniform(0, self.chromosome_length - 1))
+            if np.random.rand() < mutation_rate:
+                selection = np.random.randint(0, self.chromosome_length - 1)
                 if selection == 0:
-                    new_gene = round(random.uniform(0, len(self.optimizer) - 1))
+                    new_gene = np.random.randint(0, len(self.optimizer) - 1)
                 elif selection == 1 or ((selection - 3) % self.genome_length == 1):
-                    new_gene = round(random.uniform(0, self.max_filters - 4))
+                    new_gene = np.random.randint(0, self.max_filters - 4)
                 elif selection == 2 or ((selection - 3) % self.genome_length == 2):
-                    new_gene = round(random.uniform(0, 2))
+                    new_gene = np.random.randint(0, 2)
                 elif (selection - 3) % self.genome_length == 0:
-                    new_gene = round(random.uniform(0, len(self.layer_names) - 1))
+                    new_gene = np.random.randint(0, len(self.layer_names) - 1)
                 # else:
-                #     new_gene = round(random.uniform((selection - 6) // 7, selection // 7))
+                #     new_gene = np.random.randint((selection - 6) // 7, selection // 7))
 
                 self.chromosome[selection] = new_gene
 
@@ -104,22 +104,24 @@ class ChromosomeCNN:
         self.chromosome = []
         for selection in range(self.chromosome_length):
             if selection == 0:
-                new_gene = round(random.uniform(0, len(self.optimizer) - 1))
+                new_gene = np.random.randint(0, len(self.optimizer) - 1)
             elif selection == 1 or ((selection - 3) % self.genome_length == 1):
-                new_gene = round(random.uniform(0, self.max_filters - 4))
+                new_gene = np.random.randint(0, self.max_filters - 4)
             elif selection == 2 or ((selection - 3) % self.genome_length == 2):
-                new_gene = round(random.uniform(0, 2))
+                new_gene = np.random.randint(0, 2)
             elif (selection - 3) % self.genome_length == 0:
-                new_gene = round(random.uniform(0, len(self.layer_names) - 1))
+                new_gene = np.random.randint(0, len(self.layer_names) - 1)
             # else:
-            #     new_gene = round(random.uniform(max(0, selection // 7 - 0), selection // 7))
-                # new_gene = selection // 7 - 1
+            #     new_gene = np.random.randint(max(0, selection // 7 - 0), selection // 7))
+            # new_gene = selection // 7 - 1
 
             self.chromosome.append(new_gene)
 
     def mate(self, partner):
-        cut_point = round(random.uniform(1, self.chromosome_length - 4))
-        return self.chromosome[:cut_point].extend(partner.chromosome[cut_point:])
+        cut_point = np.random.randint(1, self.chromosome_length - 2)
+        # if cut_point > self.chromosome_length // 2:
+        #     cut_point = self.chromosome_length - cut_point
+        return self.chromosome[:cut_point] + partner.chromosome[cut_point:]
 
     def _check_if_active(self, layer):
         pass
