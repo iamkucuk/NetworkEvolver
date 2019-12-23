@@ -15,7 +15,7 @@ from torchviz import make_dot
 from ChromosomeCNN import ChromosomeCNN
 from NetworkBuilder import ConvNet
 from train_model import train_model
-
+import logging
 
 def evaluate(individual):
     torch.cuda.empty_cache()
@@ -88,8 +88,12 @@ class NetworkEvolver:
         self.population = []
         self._initialize_population()
         self.best_fitness = 0
+        now = datetime.now()
+        log_name = now.strftime("%d%m%Y_%H%M%S")
+        logging.basicConfig(filename="genetic" + log_name + ".log", format='%(asctime)s - %(levelname)s - %(message)s')
 
     def _initialize_population(self):
+        logging.info("=================Initializing population for the first time=================")
         for i in range(self.population_size * 10):
             individual = ChromosomeCNN()
             individual.initialize_individual()
@@ -97,6 +101,7 @@ class NetworkEvolver:
 
     def repopulate(self, male, female):
         self.population = []
+        logging.info("=================Re-population initiated.=================")
         for i in range(self.population_size * 10):
             child_chromosome = male.mate(female)
             individual = ChromosomeCNN(child_chromosome)
@@ -107,10 +112,14 @@ class NetworkEvolver:
         # find hall of fame
         fitnesses = {}
 
+        logging.info("=================Generation evaluation started=================")
+
         for individual in self.population:
+            logging.debug("Decoded Chromosome 1" + str(individual.decode_chromosome()))
             name, fitness = evaluate(individual)
             if name is None:
                 continue
+            logging.debug("Evaluation of chromosome" + name + ": " + str(fitness))
             fitnesses.update({
                 name: [fitness, individual],
             })
@@ -120,8 +129,15 @@ class NetworkEvolver:
         # noinspection PyTypeChecker
         fitnesses = OrderedDict(sorted(fitnesses.items(), key=lambda x: x[1][0]))
 
+        logging.warning("=================Generation evaluation fitnesses=================")
+        logging.warning(str(fitnesses))
+
+        logging.warning("=================Male individual=================")
         male = fitnesses.popitem()[1]
+        logging.warning(str(male.decode_chromosome()))
+        logging.warning("=================Female individual=================")
         female = fitnesses.popitem()[1]
+        logging.warning(str(female.decode_chromosome()))
 
         with open("male.data", "wb") as file:
             pickle.dump(male, file)
@@ -136,6 +152,7 @@ class NetworkEvolver:
 
     def evolution(self):
         for i in range(self.generations):
+            logging.debug("=================Generation " + str(i + 1)+"=================")
             self.breed()
 
 
