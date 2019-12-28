@@ -1,7 +1,6 @@
 import logging
 import os
 import pickle
-import random
 from collections import OrderedDict
 from datetime import datetime
 
@@ -9,8 +8,8 @@ import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch import nn, optim
-from torch.optim.adagrad import Adagrad
 from torch.optim.adadelta import Adadelta
+from torch.optim.adagrad import Adagrad
 from torch.optim.rmsprop import RMSprop
 from torch.utils.data import DataLoader
 from torchsummary import summary
@@ -29,9 +28,6 @@ def evaluate(individual):
     decoded_chromosome = individual.decode_chromosome()
     try:
         model = ConvNet(decoded_chromosome[1:])
-        # torch.save(model, "hebe.pt")
-        # dummy = torch.zeros([1, 3, 64, 64]).requires_grad_(True)
-        # make_dot(model(dummy), params=dict(list(model.named_parameters()) + [('x', dummy)]))
         summary(model, input_size=(3, 64, 64), device="cpu")
     except ValueError as e:
         if str(e) == "Bad Network":
