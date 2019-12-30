@@ -15,13 +15,13 @@ class ModelEngine:
     This class is compatible with only specific type models.
     """
 
-    def __init__(self, model, criterion, optimizer, isRecurrent=False,
-                 scheduler=None, model_name=None, tensorboard_visuals=True, device=None):
+    def __init__(self, model, criterion, optimizer, is_recurrent=False,
+                 scheduler=None, model_name=None, tensorboard_visuals=True, device=None, release_cuda_memory=True):
         """
         :param model : Created model. Can be ConvNet, CNN_RNN or CRNN type
         :param criterion: Loss function. Should be a loss function compatible with PyTorch
         :param optimizer: Optimizer. Should be compatible with PyTorch.
-        :param isRecurrent: Specifies if the model requires hidden inputs like RNN models.
+        :param is_recurrent: Specifies if the model requires hidden inputs like RNN models.
         :param scheduler: Default: None - Learning rate scheduler. Not properly implemented yet.
         :param model_name: Default: None - Desired model name. Can be None or String. If this parameter
         is none, the model will be named according to system current time.
@@ -31,7 +31,7 @@ class ModelEngine:
         """
 
         self.scheduler = scheduler
-        self.isRecurrent = isRecurrent
+        self.isRecurrent = is_recurrent
         self.optimizer = optimizer
         self.criterion = criterion
         self.model = model
@@ -40,6 +40,10 @@ class ModelEngine:
             print("Using device {}".format(self.device))
         else:
             self.device = device
+
+        if "cuda:0" == self.device and release_cuda_memory:
+            torch.cuda.empty_cache()
+
         if model_name is None:
             now = datetime.now()
             self.model_name = now.strftime("%d%m%Y%H%M%S")
@@ -49,12 +53,14 @@ class ModelEngine:
 
         self.model = self.model.to(self.device)
 
-    def fit(self, dataloaders, num_epoch=10, inplace=True, earlyStopping=False):
+    def fit(self, dataloaders, num_epoch=10, inplace=True, early_stopping=False, retain_graph=False):
         """
         Initiates training procedure for the current object. Returns the model with the best validation loss.
-        :param earlyStopping: Early stopping based on validation loss decrease.
         :param dataloaders: Dictionary of the dataloaders for both training and validation parts.
         Training dataloader's key should be "train". Validation dataloader's key should be "val".
+        :param retain_graph: Default: False - PyTorch may remove some of the model graph from memory for certain models.
+        This option forces PyTorch to retain computation graph on every iteration. Should be remain False if no need.
+        :param early_stopping: Early stopping based on validation loss decrease.
         :param num_epoch: Number of epochs. Should be integer.
         :param inplace: Default: True - If True, do operation inplace and return None.
         :return: Trained model.
@@ -75,12 +81,6 @@ class ModelEngine:
             for phase in ['train', 'val']:
                 running_loss = 0.0
                 if phase == 'train':
-                    if self.scheduler is not None:
-                        self.scheduler.step()
-                        if self.isTensorboard:
-                            writer.add_scalar('learning_rate',
-                                              self.scheduler.get_lr(),
-                                              epoch * len(dataloaders['train']) + i)
                     self.model.train()
                 else:
                     self.model.eval()
@@ -96,13 +96,22 @@ class ModelEngine:
                     with torch.set_grad_enabled(phase == 'train'):
                         if self.isRecurrent:
                             outputs, hidden_state = self.model(inputs, hidden_state)
+                            _, predicted = torch.max(outputs.data, 1)
                         else:
                             outputs = self.model(inputs)
-                        loss = self.criterion(outputs, labels.float())
+                            _, predicted = torch.max(outputs.data, 1)
+
+                        loss = self.criterion(outputs, labels)
 
                         if phase == 'train':
-                            loss.backward(retain_graph=True)
+                            loss.backward(retain_graph=retain_graph)
                             self.optimizer.step()
+                            if self.scheduler is not None:
+                                self.scheduler.step()
+                                if self.isTensorboard:
+                                    writer.add_scalar('learning_rate',
+                                                      self._get_lr(),
+                                                      epoch * len(dataloaders['train']) + i)
 
                     running_loss += loss.item()
 
@@ -135,7 +144,7 @@ class ModelEngine:
             if val_loss < best_val:
                 best_val = epoch_loss
                 best_model = copy.deepcopy(self.model)
-            elif earlyStopping:
+            elif early_stopping:
                 print("Loss diddn't decrease. Early stopping.")
                 writer.close()
                 if inplace:
@@ -148,6 +157,10 @@ class ModelEngine:
             self.model = best_model
         else:
             return best_model
+
+    def _get_lr(self):
+        for param_group in self.optimizer.param_groups:
+            return param_group['lr']
 
     def predict_proba_with_loader(self, dataloader):
         """
