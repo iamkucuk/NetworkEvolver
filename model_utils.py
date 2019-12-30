@@ -77,6 +77,10 @@ class ModelEngine:
                 if phase == 'train':
                     if self.scheduler is not None:
                         self.scheduler.step()
+                        if self.isTensorboard:
+                            writer.add_scalar('learning_rate',
+                                              self.scheduler.get_lr(),
+                                              epoch * len(dataloaders['train']) + i)
                     self.model.train()
                 else:
                     self.model.eval()
