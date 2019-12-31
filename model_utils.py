@@ -80,6 +80,7 @@ class ModelEngine:
 
             for phase in ['train', 'val']:
                 running_loss = 0.0
+                running_acc = 0
                 if phase == 'train':
                     self.model.train()
                 else:
@@ -114,6 +115,7 @@ class ModelEngine:
                                                       epoch * len(dataloaders['train']) + i)
 
                     running_loss += loss.item()
+                    running_acc += torch.sum(predicted == labels.data)
 
                     if i % 100 == 99 and phase == 'train' and self.isTensorboard:
                         writer.add_scalar('training_loss',
@@ -126,17 +128,23 @@ class ModelEngine:
                 t_batches.close()
 
                 epoch_loss = running_loss / len(dataloaders[phase])
+                epoch_acc = running_acc / len(dataloaders[phase])
 
                 if phase == 'train':
                     avg_loss = epoch_loss
                 else:
                     val_loss = epoch_loss
+                    val_acc = epoch_acc
 
             t_epoch.set_description("Train Loss: {:.4f} - Val Loss: {:.4f}".format(avg_loss, val_loss))
 
             if self.isTensorboard:
                 writer.add_scalar('val_loss',
                                   val_loss,
+                                  epoch)
+
+                writer.add_scalar("val_acc",
+                                  val_acc,
                                   epoch)
 
                 writer.close()
