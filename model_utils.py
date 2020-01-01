@@ -115,7 +115,7 @@ class ModelEngine:
                                                       epoch * len(dataloaders['train']) + i)
 
                     running_loss += loss.item()
-                    running_acc += torch.sum(predicted == labels.data)
+                    running_acc += torch.sum(predicted == labels.data) / inputs.size(0)
 
                     if i % 100 == 99 and phase == 'train' and self.isTensorboard:
                         writer.add_scalar('training_loss',
